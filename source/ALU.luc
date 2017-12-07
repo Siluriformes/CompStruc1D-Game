@@ -1,0 +1,58 @@
+module alu (
+//inputs from mojo_top
+    input alufn[6],
+    input a[8],  
+    input b[8],  
+//outputs to mojo_top
+    output alu[8],
+    output z,
+    output v,
+    output n
+  ) {
+  
+//modules of ALU
+  adder adder1;
+  comparator compare1;
+  boolean boolean1;
+  shifter shifter1;
+  always {
+  
+    //assign inputs to adder
+    adder1.a = a;
+    adder1.b = b; 
+    adder1.alufn = alufn; 
+    
+    //assign inputs to comparator
+    compare1.alufn = alufn;
+    compare1.v = adder1.v;
+    compare1.n = adder1.n;
+    compare1.z = adder1.z;
+    
+    //assign inputs of ALU to boolean
+    boolean1.a =a;
+    boolean1.b=b;
+    boolean1.alufn=alufn;
+    
+    //assign inputs of ALU to shifter
+    shifter1.a=a;
+    shifter1.b=b;
+    shifter1.alufn=alufn;
+    
+    // alufn inputs to select module output
+    case(alufn[5:4]){
+      b00:
+      alu = adder1.sum; // selects adder output 
+      b01:
+      alu = boolean1.boole; // selects boolean output
+      b10:
+      alu = shifter1.shift; //selects shifter output
+      b11:
+      alu = compare1.cmp; //selects comparator output
+      default:
+      alu = 8b0;
+  }
+    v = adder1.v;
+    n = adder1.n;
+    z = adder1.z;
+}
+}

@@ -1,0 +1,153 @@
+module mojo_top (
+    input clk,              // 50MHz clock
+    input rst_n,            // reset button (active low)
+    input io_dip [3][8],    // DIP switches on IO Shield
+    input io_button [5],    // 5 buttons on IO Shield
+    output led [8],         // 8 user controllable LEDs
+    output io_led [3][8],   // LEDs on IO Shield
+    output io_seg [8],      // 7-segment LEDs on IO Shield
+    output io_sel [4]       // Digit select on IO Shield
+  ) {
+  
+  sig rst;                  // reset signal
+  sig check[3];
+  .clk(clk) {
+    // The reset conditioner is used to synchronize the reset signal to the FPGA clock. This ensures the entire FPGA comes out of reset at the same time.
+    reset_conditioner reset_cond;
+    .rst(rst){
+      cd_timer cdtimer;
+      task1 t1;
+      task2 t2;
+      task3 t3;
+      task4 t4;
+      multi_seven_seg seg_display;
+      dff counter[26]; //counter for blinker  
+      fsm state = {IDLE,COUNTDOWN,BOOM};
+    }
+  }
+  
+  time_digit timedigit;
+  alu alu1;
+        
+  always {   
+    reset_cond.in = ~rst_n; // input raw inverted reset signal
+    rst = reset_cond.out;   // conditioned reset
+    led[7:0] = 8h00;        // starting mojo[7:0] LEDs off 
+    io_led = 3x{{8h00}};    // starting io_led off      
+    
+    alu1.a = 8b0;
+    alu1.b = 8b0;
+    alu1.alufn = 6b0;
+    
+    
+    cdtimer.in = 9d300;  // countdown timer duration (max = 309secs for time digit converter)
+    cdtimer.enable = 0;
+    t1.enable = 0;
+    t2.enable = 0;
+    t3.enable = 0;
+    t4.enable = 0;
+    
+    t1.w1 = io_dip[2][7]; //change to proper input pins instead of dip switches
+    t1.w2 = io_dip[2][6];
+    t1.w3 = io_dip[2][5];
+    t1.w4 = io_dip[2][4];
+    t1.w5 = io_dip[2][3];
+    t1.w6 = io_dip[2][2];
+    
+    t2.but1 = io_dip[1][7]; //change to proper input pins instead of dip switches
+    t2.but2 = io_dip[1][6];
+    t2.but3 = io_dip[1][5];
+    t2.but4 = io_dip[1][4];
+    t2.but5 = io_dip[1][3];
+    t2.but6 = io_dip[1][2];
+    t2.but7 = io_dip[1][1];
+    t2.but8 = io_dip[1][0];
+    
+    io_led[1][7] = t2.led1; //change to proper output LEDs
+    io_led[1][6] = t2.led2;
+    io_led[1][5] = t2.led3;
+    io_led[1][4] = t2.led4;
+    io_led[1][3] = t2.led5;
+    io_led[1][2] = t2.led6;
+    io_led[1][1] = t2.led7;
+    io_led[1][0] = t2.led8;
+
+    t3.r = io_button[0];  //137
+    t3.b = io_button[2];  //139
+    t3.g = io_button[3];  //142
+    t3.y = io_button[4];  //138
+    
+    led[7] = t3.rout;  //change to proper color LEDs
+    led[5] = t3.bout;
+    led[3] = t3.gout;
+    led[1] = t3.yout;
+    
+    t4.in1 = io_dip[0][7:5];  //change to proper input instead of dip switches
+    t4.in2 = io_dip[0][4:2];
+    
+    io_led[0][7:5] = t4.led;  //change to proper big LEDs instead of io led
+    
+    timedigit.in = cdtimer.out;
+    
+    seg_display.values = {6d16, timedigit.out2,timedigit.out1,timedigit.out0};
+    io_seg = ~seg_display.seg;  // connects segments to inverted seg_display.seg
+    io_sel = ~seg_display.sel;  // connects selector to inverted seg_display.sel  
+    check = t1.out + t2.out + t3.out + t4.out;
+    
+    case (check){      // check number of tasks completed
+      1: io_led[0] = 8b01101001;
+      2: io_led[0] = 8b01101001;
+         io_led[1] = 8b10101010; 
+      3: io_led[0] = 8b01101001;
+         io_led[1] = 8b10101010;
+         io_led[2] = 8b11110000;
+      4: io_led[0] = 8b01101001;
+         io_led[1] = 8b11000011;
+         io_led[2] = 8b11110000;
+    }   
+    
+    case(state.q){
+      state.IDLE:
+          if (io_button[1]){ //pressing "CENTER" button initiates transition to countdown state
+          cdtimer.enable = 1;
+          t1.enable = 1;
+          t2.enable = 1;
+          t3.enable = 1;
+          t4.enable = 1;
+          state.d = state.COUNTDOWN;}//transition to countdown
+      state.COUNTDOWN:
+          if(io_button[1] == 1 && io_dip=={8b11110000,8b10101010,8b01101001}&&check>2){  // win condition switch + 3 win passcode
+          cdtimer.enable = 2;
+          state.d = state.IDLE;}
+          if(io_button[1] == 1 && io_dip=={8b11110000,8b11000011,8b01101001}&&check>2){  // win condition switch + 4 win passcode
+          cdtimer.enable = 2;
+          state.d = state.IDLE;}
+          if(cdtimer.out==0){
+          state.d = state.BOOM;}
+      state.BOOM:
+          alu1.a = counter.q[25]; //CMPEQ
+          alu1.b = 1;
+          alu1.alufn = 6b110011; 
+        
+          //alu1.alufn = 6b000000; //ADD
+          //alu1.alufn = 6b000001; //SUB
+          //alu1.alufn = 6b011000; //AND
+          //alu1.alufn = 6b011110; //OR
+          //alu1.alufn = 6b010110; //XOR
+          //alu1.alufn = 6b011010; //"A"(LDR)
+          //alu1.alufn = 6b100000; //SHL
+          //alu1.alufn = 6b100001; //SHR
+          //alu1.alufn = 6b100011; //SRA
+          //alu1.alufn = 6b110011; //CMPEQ
+          //alu1.alufn = 6b110101; //CMPLT
+          //alu1.alufn = 6b110111; //CMPLE
+        
+          
+          counter.d = counter.q+1; 
+          if (alu1.alu){
+            seg_display.values = {6d15, 6d10,6d0,6d0};}
+          else{
+            seg_display.values = {6d15, 6d15,6d15,6d15};}
+          }
+}
+}

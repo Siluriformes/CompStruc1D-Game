@@ -1,0 +1,83 @@
+module task1 (
+    input clk,  // clock    
+    input rst,  // reset
+    input w1,
+    input w2,
+    input w3,
+    input w4,
+    input w5,
+    input w6,    
+    input enable,
+    output out[3]
+  ) {
+
+    .clk(clk) {
+    .rst(rst){
+      fsm state = {IDLE,W1,W2,W3,W4,W5,W6,WIN,LOSE};
+    }
+  }
+  
+  alu alu1;
+  
+  always {
+    alu1.a = 0;
+    alu1.b = 0;
+    alu1.alufn = 6b110101; //CMPLT
+    out = 0;    
+    case(state.q){
+      state.IDLE:
+      if(enable){
+        state.d = state.W1;}
+          
+      state.W1:
+      alu1.a = w1;
+      alu1.b = 8d1;
+      if(alu1.alu){
+        state.d = state.W2;}
+      if(!w2||!w3||!w4||!w5||!w6){
+        state.d = state.LOSE;}
+          
+      state.W2:
+      alu1.a = w2;
+      alu1.b = 8d1;
+      if(alu1.alu){
+        state.d = state.W3;}
+      if(!w3||!w4||!w5||!w6){
+        state.d = state.LOSE;}
+          
+      state.W3:
+      alu1.a = w3;
+      alu1.b = 8d1;
+      if(alu1.alu){
+        state.d = state.W4;}
+      if(!w4||!w5||!w6){
+        state.d = state.LOSE;}
+          
+      state.W4:
+      alu1.a = w4;
+      alu1.b = 8d1;
+      if(alu1.alu){
+        state.d = state.W5;}
+      if(!w5||!w6){
+        state.d = state.LOSE;}
+          
+      state.W5:
+      alu1.a = w5;
+      alu1.b = 8d1;
+      if(alu1.alu){
+        state.d = state.W6;}
+      if(!w6){
+        state.d = state.LOSE;}
+          
+      state.W6:
+      alu1.a = w6;
+      alu1.b = 8d1;
+      if(alu1.alu){
+        state.d = state.WIN;}
+        
+        
+      state.WIN:
+      out = 3b1;     
+    }
+  }
+}

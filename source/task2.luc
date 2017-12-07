@@ -1,0 +1,155 @@
+module task2 (
+    input clk,  // clock
+    input rst,  // reset
+    input but1,
+    input but2,
+    input but3,
+    input but4,
+    input but5,
+    input but6,
+    input but7,
+    input but8,   
+    input enable[2],
+    output out[3],
+    output led1,
+    output led2,
+    output led3,
+    output led4,
+    output led5,
+    output led6,
+    output led7,
+    output led8
+  ) {
+
+    .clk(clk) {
+      edge_detector ed1(#RISE(0),#FALL(1)); //detect falling edge
+      button_conditioner bc1;
+      edge_detector ed2(#RISE(0),#FALL(1)); //detect falling edge
+      button_conditioner bc2;
+      edge_detector ed3(#RISE(0),#FALL(1)); //detect falling edge
+      button_conditioner bc3;
+      edge_detector ed4(#RISE(0),#FALL(1)); //detect falling edge
+      button_conditioner bc4;
+      edge_detector ed5(#RISE(0),#FALL(1)); //detect falling edge
+      button_conditioner bc5;
+      edge_detector ed6(#RISE(0),#FALL(1)); //detect falling edge
+      button_conditioner bc6;
+      edge_detector ed7(#RISE(0),#FALL(1)); //detect falling edge
+      button_conditioner bc7;
+      edge_detector ed8(#RISE(0),#FALL(1)); //detect falling edge
+      button_conditioner bc8;
+    .rst(rst){
+      fsm state = {IDLE,B12,B23,B34,B45,B56,B67,B78,WIN};
+      dff l1[1];
+      dff l2[1];
+      dff l3[1];
+      dff l4[1];
+      dff l5[1];
+      dff l6[1];
+      dff l7[1];
+      dff l8[1];
+      
+    }
+  }
+  alu alu1;
+  always {
+    out = 0;    
+    alu1.a = 0;
+    alu1.b = 0;
+    alu1.alufn = 6b011000; //AND 
+    led1 = l1.q;
+    led2 = l2.q;
+    led3 = l3.q;
+    led4 = l4.q;
+    led5 = l5.q;
+    led6 = l6.q;
+    led7 = l7.q;
+    led8 = l8.q;
+    bc1.in = but1;
+    ed1.in = bc1.out;
+    bc2.in = but2;
+    ed2.in = bc2.out;
+    bc3.in = but3;
+    ed3.in = bc3.out;
+    bc4.in = but4;
+    ed4.in = bc4.out;
+    bc5.in = but5;
+    ed5.in = bc5.out;
+    bc6.in = but6;
+    ed6.in = bc6.out;
+    bc7.in = but7;
+    ed7.in = bc7.out;
+    bc8.in = but8;
+    ed8.in = bc8.out;
+    
+    if(ed1.out&&enable){l1.d=l1.q+1;}
+    if(ed2.out&&enable){l2.d=l2.q+1;}
+    if(ed3.out&&enable){l3.d=l3.q+1;}
+    if(ed4.out&&enable){l4.d=l4.q+1;}
+    if(ed5.out&&enable){l5.d=l5.q+1;}
+    if(ed6.out&&enable){l6.d=l6.q+1;}
+    if(ed7.out&&enable){l7.d=l7.q+1;}
+    if(ed8.out&&enable){l8.d=l8.q+1;}
+
+    case(state.q){
+      state.IDLE:
+      if(enable){
+        state.d = state.B12;}
+          
+      state.B12:
+      alu1.a = !l1.q;
+      alu1.b = l2.q;
+      if(alu1.alu){state.d = state.B23;}
+        
+      state.B23:
+      alu1.a = 8b1;
+      alu1.b = l3.q;
+      if(alu1.alu){state.d=state.B34;}
+      else{state.d = state.B12;}
+        
+      state.B34:
+      alu1.a = 8b1;
+      alu1.b = l4.q;
+      if(alu1.alu){state.d=state.B45;}
+      else{state.d = state.B12;}
+          
+      state.B45:
+      alu1.a = 8b1;
+      alu1.b = !l5.q;
+      if(alu1.alu){state.d=state.B56;}
+      else{state.d = state.B12;}
+          
+      state.B56:
+      alu1.a = 8b1;
+      alu1.b = !l6.q;
+      if(alu1.alu){state.d=state.B67;}
+      else{state.d = state.B12;}
+          
+      state.B67:
+      alu1.a = 8b1;
+      alu1.b = l7.q;
+      if(alu1.alu){state.d=state.B78;}
+      else{state.d = state.B12;}
+          
+      state.B78:
+      alu1.a = 8b1;
+      alu1.b = l8.q;
+      if(alu1.alu){state.d=state.WIN;}
+      else{state.d = state.B12;}  
+      
+      //if(!l1.q&&l2.q&&l3.q&&l4.q&&!l5.q&&!l6.q&&l7.q&&l8.q)
+      //  {state.d = state.WIN;}
+        
+      state.WIN:    //all led off or all led on? check later
+      l1.d=0;
+      l2.d=0;
+      l3.d=0;
+      l4.d=0;
+      l5.d=0;
+      l6.d=0;
+      l7.d=0;
+      l8.d=0;
+      out = 3b1;               
+    }
+  }
+}

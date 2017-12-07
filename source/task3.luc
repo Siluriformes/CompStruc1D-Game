@@ -1,0 +1,222 @@
+module task3 ( //Simon Says
+    input clk,  // clock
+    input rst,  // reset
+    input enable,
+    input r,  //red button
+    input b,  //blue button
+    input g,  //green button
+    input y,  //yellow button
+    output rout,  //red led
+    output bout,  //blue led
+    output gout,  //green led
+    output yout,  //yellow led
+    output out[3] //win flag
+  ) {
+
+    .clk(clk) {
+      edge_detector edr(#RISE(0),#FALL(1)); //detect falling edge
+      button_conditioner bcr;
+      edge_detector edb(#RISE(0),#FALL(1)); //detect falling edge
+      button_conditioner bcb;
+      edge_detector edg(#RISE(0),#FALL(1)); //detect falling edge
+      button_conditioner bcg;
+      edge_detector edy(#RISE(0),#FALL(1)); //detect falling edge
+      button_conditioner bcy;
+    .rst(rst){
+      dff stage[2];  //stage counter
+      dff counter[30]; // time counter
+      dff offon[1];  //blink counter
+      dff sequence[4]; // counter used to hold sequence
+      fsm state = {IDLE,SEQ1,INPUT1,ERR,SEQ2,INPUT2,SEQ3,INPUT3,WIN};
+    }       
+  }
+    
+  always {
+    edr.in = bcr.out;
+    bcr.in = r;
+    edb.in = bcb.out;
+    bcb.in = b;
+    edg.in = bcg.out;
+    bcg.in = g;
+    edy.in = bcy.out;
+    bcy.in = y;
+    out = 0; 
+    rout = r;
+    bout = b;
+    gout = g;
+    yout = y;
+    case(state.q){
+    
+      state.IDLE:
+      if(enable){
+        stage.d = stage.q+1; //stage1
+        state.d = state.SEQ1;}
+          
+      state.SEQ1:    //RBBY
+      rout = 0;
+      bout = 0;
+      gout = 0;
+      yout = 0;
+      if(offon.q){
+      case(sequence.q){
+          1:rout = 1;
+          2:bout = 1;
+          3:bout = 1;
+          4:yout = 1;        
+          5:sequence.d = 0;
+            counter.d = 0;
+            offon.d = 0;
+            state.d = state.INPUT1;}
+        }
+      counter.d = counter.q+1;
+      if (counter.q[23]==1&&!offon.q){
+        counter.d = 0;
+        offon.d = offon.q+1;
+        }      
+      if (counter.q[25]==1&&offon.q){
+        counter.d = 0;
+        offon.d = offon.q+1; 
+        sequence.d = sequence.q+1;      
+        }
+        
+      state.INPUT1: //BRRG down up up left 
+      case(sequence.q){
+      0:if(edb.out){sequence.d=sequence.q+1;}
+        if(edr.out||edg.out||edy.out){sequence.d=0; counter.d=0; state.d = state.ERR;}
+      1:if(edr.out){sequence.d=sequence.q+1;}
+        if(edb.out||edg.out||edy.out){sequence.d=0; counter.d=0; state.d = state.ERR;}
+      2:if(edr.out){sequence.d=sequence.q+1;}
+        if(edb.out||edg.out||edy.out){sequence.d=0; counter.d=0; state.d = state.ERR;}
+      3:if(edg.out){sequence.d=sequence.q+1;}
+        if(edb.out||edr.out||edy.out){sequence.d=0; counter.d=0; state.d = state.ERR;}   
+      4:sequence.d = 0; stage.d = stage.q+1; state.d=state.SEQ2;} //stage2
+           
+      counter.d = counter.q+1;
+      if(counter.q==27d100000000&&sequence.q==0){
+        counter.d=0;
+        state.d = state.SEQ1;}      
+          
+      state.SEQ2:    //GRYBG
+      rout = 0;
+      bout = 0;
+      gout = 0;
+      yout = 0;
+      if(offon.q){
+      case(sequence.q){
+          0:rout = 1;
+            bout = 1;
+            gout = 1;
+            yout = 1;
+          1:gout = 1;
+          2:rout = 1;
+          3:yout = 1;
+          4:bout = 1;        
+          5:gout = 1;
+          6:sequence.d = 0;
+            counter.d = 0;
+            offon.d = 0;
+            state.d = state.INPUT2;}
+        }
+      counter.d = counter.q+1;
+      if (counter.q[23]==1&&!offon.q){
+        counter.d = 0;
+        offon.d = offon.q+1;
+        }      
+      if (counter.q[25]==1&&offon.q){
+        counter.d = 0;
+        offon.d = offon.q+1; 
+        sequence.d = sequence.q+1;      
+        }
+        
+      state.INPUT2: //BYRGB down right up left down
+      case(sequence.q){
+      0:if(edb.out){counter.d=0; sequence.d=sequence.q+1;}
+        if(edr.out||edg.out||edy.out){sequence.d=0; counter.d=0; state.d = state.ERR;}
+      1:if(edy.out){counter.d=0; sequence.d=sequence.q+1;}
+        if(edb.out||edg.out||edr.out){sequence.d=0; counter.d=0; state.d = state.ERR;}
+      2:if(edr.out){counter.d=0; sequence.d=sequence.q+1;}
+        if(edb.out||edg.out||edy.out){sequence.d=0; counter.d=0; state.d = state.ERR;}
+      3:if(edg.out){counter.d=0; sequence.d=sequence.q+1;}
+        if(edb.out||edr.out||edy.out){sequence.d=0; counter.d=0; state.d = state.ERR;}   
+      4:if(edb.out){counter.d=0; sequence.d=sequence.q+1;}
+        if(edg.out||edr.out||edy.out){sequence.d=0; counter.d=0; state.d = state.ERR;}   
+      5:sequence.d = 0; stage.d=stage.q+1; state.d=state.SEQ3;} //stage3    
+          
+      counter.d = counter.q+1;
+      if(counter.q==27d100000000&&sequence.q==0){
+        counter.d=0;
+        state.d = state.SEQ2;}  
+               
+      state.SEQ3:    //RYBRYBG
+      rout = 0;
+      bout = 0;
+      gout = 0;
+      yout = 0;
+      if(offon.q){
+      case(sequence.q){
+          0:rout = 1;
+            bout = 1;
+            gout = 1;
+            yout = 1;
+          1:rout = 1;
+          2:yout = 1;
+          3:bout = 1;
+          4:rout = 1;        
+          5:yout = 1;   
+          6:bout = 1;   
+          7:gout = 1;   
+          8:sequence.d = 0;
+            counter.d = 0;
+            offon.d = 0;
+            state.d = state.INPUT3;}
+        }
+      counter.d = counter.q+1;
+      if (counter.q[23]==1&&!offon.q){
+        counter.d = 0;
+        offon.d = offon.q+1;
+        }      
+      if (counter.q[25]==1&&offon.q){
+        counter.d = 0;
+        offon.d = offon.q+1; 
+        sequence.d = sequence.q+1;      
+        }
+        
+      state.INPUT3: //BGYBGYR down left right down left right up
+      case(sequence.q){
+      0:if(edb.out){counter.d=0; sequence.d=sequence.q+1;}
+        if(edr.out||edg.out||edy.out){sequence.d=0; counter.d=0; state.d = state.ERR;}
+      1:if(edg.out){counter.d=0; sequence.d=sequence.q+1;}
+        if(edb.out||edy.out||edr.out){sequence.d=0; counter.d=0; state.d = state.ERR;}
+      2:if(edy.out){counter.d=0; sequence.d=sequence.q+1;}
+        if(edr.out||edg.out||edb.out){sequence.d=0; counter.d=0; state.d = state.ERR;}
+      3:if(edb.out){counter.d=0; sequence.d=sequence.q+1;}
+        if(edr.out||edg.out||edy.out){sequence.d=0; counter.d=0; state.d = state.ERR;}
+      4:if(edg.out){counter.d=0; sequence.d=sequence.q+1;}
+        if(edb.out||edy.out||edr.out){sequence.d=0; counter.d=0; state.d = state.ERR;}
+      5:if(edy.out){counter.d=0; sequence.d=sequence.q+1;}
+        if(edr.out||edg.out||edb.out){sequence.d=0; counter.d=0; state.d = state.ERR;}
+      6:if(edr.out){counter.d=0; sequence.d=sequence.q+1;}
+        if(edy.out||edg.out||edb.out){sequence.d=0; counter.d=0; state.d = state.ERR;}
+      7:sequence.d = 0; stage.d=stage.q+1; state.d=state.WIN;} //WIN   
+             
+      counter.d = counter.q+1;
+      if(counter.q==27d100000000&&sequence.q==0){
+        counter.d=0;
+        state.d = state.SEQ3;}  
+          
+       state.ERR:
+       rout = 1;bout = 1;gout = 1;yout = 1;  
+       counter.d = counter.q+1;
+       if(counter.q[27]==1){
+         counter.d=0;
+         case(stage.q){
+            1: state.d = state.SEQ1;
+            2: state.d = state.SEQ2;
+            3: state.d = state.SEQ3;}} 
+            
+      state.WIN:
+       rout = 1;bout = 1;gout = 1;yout = 1;  
+       out = 3b1;          
+    }
+  }
+}

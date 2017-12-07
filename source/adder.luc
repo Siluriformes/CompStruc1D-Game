@@ -1,0 +1,41 @@
+module adder ( //performs addition, subtraction, multiplication, modulo functions
+//inputs from the ALU
+    input alufn[6],
+    input a[8],  
+    input b[8],  
+//outputs to the ALU   
+    output sum[8],
+    output z,
+    output v, 
+    output n
+  ) {
+  
+sig sum1[9]; //9-bit output
+var i;
+  always {
+    n = 0;
+    case(alufn[1:0]){ //alufn value controlling add or subtract operator
+    b00:
+      sum1 = a+b; //addition
+          
+    b01:
+      sum1 = a-b; //subtraction
+      n = sum1[7];
+      if(sum1[7]==1){ // if negative overflow, complement result to get positive value
+        for(i=0;i<8;i++){
+          sum1[i] = 1^sum1[i]; //invert digits for negative two's complement
+          }
+      sum1 = sum1+1;}
+    b10:
+      sum1 = a*b; // multiplication
+    b11:
+      sum1 = a-(a/b*b); // modulo
+    default:
+      sum1 = a+b;
+  }
+    //assigning values to outputs
+    sum = sum1[7:0];
+    z = ~|sum1;
+    v = (a[7] & b[7] & (~sum1[7])) | ((~a[7])&(~b[7])&sum1[7]);
+}
+}

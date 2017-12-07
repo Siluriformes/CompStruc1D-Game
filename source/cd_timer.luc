@@ -1,0 +1,36 @@
+module cd_timer (
+    input clk,  // clock
+    input rst,  // rst signal
+    input in[9],
+    input enable[2],
+    output out[9]
+  ) {
+  .clk(clk) {
+      .rst(rst){
+      dff counter[26]; //counter used to wait 1 sec 
+      dff eo[2];  //counter used to hold enable
+      dff countdown[8]; //counter used to hold cd_timer
+      fsm state = {COUNT,WAIT};}
+    }
+  
+  always {
+      case(enable){
+      1: eo.d = eo.q+1;
+      2: eo.d = eo.q+1;      
+      }
+      out = in - countdown.q;
+      case(state.q){
+        state.COUNT:  //countdown digit
+          counter.d = 0;
+          if(eo.q ==1){
+            state.d = state.WAIT;}        
+        state.WAIT:  //wait 1 sec
+          counter.d = counter.q + 1;
+          if(eo.q ==2){
+          state.d= state.COUNT;}
+          if(counter.q==26d49999999){
+            countdown.d = countdown.q + 1;
+          state.d = state.COUNT;}
+        }
+        }
+  }

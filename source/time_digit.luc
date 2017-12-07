@@ -1,0 +1,170 @@
+module time_digit ( //converts time in secs to time in minutes and secs for led display
+    input in[9],
+    output out2[6],  
+    output out1[6],  
+    output out0[6]
+  ) {
+ 
+  always {
+    if (in<=9){
+      out2=6d10;
+      out1=6d0;
+      out0=in[5:0];
+    }
+    else if (in<=19){
+      out2=6d10;
+      out1=6d1;
+      out0=in-10;
+    }
+    else if (in<=29){
+      out2=6d10;
+      out1=6d2;
+      out0=in-20;
+    }
+    else if (in<=39){
+      out2=6d10;  
+      out1=6d3;
+      out0=in-30;
+    }
+     else if (in<=49){
+      out2=6d10;
+      out1=6d4;
+      out0=in-40;
+    }
+     else if (in<=59){
+      out2=6d10;
+      out1=6d5;
+      out0=in-50;
+    }
+     else if (in<=69){
+      out2=6d11;
+      out1=6d0;
+      out0=in-60;
+    }
+     else if (in<=79){
+      out2=6d11;
+      out1=6d1;
+      out0=in-70;
+    }
+     else if (in<=89){
+      out2=6d11;
+      out1=6d2;
+      out0=in-80;
+   }
+     else if (in<=99){
+      out2=6d11;
+      out1=6d3;
+      out0=in-90;
+   }      
+     else if (in<=109){
+      out2=6d11;
+      out1=6d4;
+      out0=in-100;
+   }      
+     else if (in<=119){
+      out2=6d11;
+      out1=6d5;
+      out0=in-110;
+   } 
+     else if (in<=129){
+      out2=6d12;
+      out1=6d0;
+      out0=in-120;
+   }  
+     else if (in<=139){
+      out2=6d12;
+      out1=6d1;
+      out0=in-130;
+   }                    
+     else if (in<=149){
+      out2=6d12;
+      out1=6d2;
+      out0=in-140;
+   }                  
+     else if (in<=159){
+      out2=6d12;
+      out1=6d3;
+      out0=in-150;
+   }                      
+      else if (in<=169){
+      out2=6d12;
+      out1=6d4;
+      out0=in-160;
+   }         
+      else if (in<=179){
+      out2=6d12;
+      out1=6d5;
+      out0=in-170;
+   }               
+      else if (in<=189){
+      out2=6d13;
+      out1=6d0;
+      out0=in-180;
+   }               
+      else if (in<=199){
+      out2=6d13;
+      out1=6d1;
+      out0=in-190;
+   } 
+      else if (in<=209){
+      out2=6d13;
+      out1=6d2;
+      out0=in-200;
+   }   
+      else if (in<=219){
+      out2=6d13;
+      out1=6d3;
+      out0=in-210;
+   }    
+      else if (in<=229){
+      out2=6d13;
+      out1=6d4;
+      out0=in-220;
+   }   
+      else if (in<=239){
+      out2=6d13;
+      out1=6d5;
+      out0=in-230;
+   }   
+      else if (in<=249){
+      out2=6d14;
+      out1=6d0;
+      out0=in-240;
+   }           
+      else if (in<=259){
+      out2=6d14;
+      out1=6d1;
+      out0=in-250;
+   }             
+      else if (in<=269){
+      out2=6d14;
+      out1=6d2;
+      out0=in-260;
+   }            
+      else if (in<=279){
+      out2=6d14;
+      out1=6d3;
+      out0=in-270;
+   }               
+      else if (in<=289){
+      out2=6d14;
+      out1=6d4;
+      out0=in-280;
+   }                             
+      else if (in<=299){
+      out2=6d14;
+      out1=6d5;
+      out0=in-290;
+   }                                    
+      else if (in<=309){
+      out2=6d15;
+      out1=6d0;
+      out0=in-300;
+   }                    
+    else{
+      out2=0;
+      out1=0;
+      out0=0;
+    }
+  }
+}

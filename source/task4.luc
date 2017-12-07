@@ -1,0 +1,118 @@
+module task4 (
+    input clk,  // clock
+    input rst,  // reset
+    input enable[2],
+    input in1[3],
+    input in2[3],
+    output led[3],
+    output out[3]
+  ) {
+
+    .clk(clk) {
+    .rst(rst){
+      dff stage[2];
+      dff calc[8];
+      fsm state = {IDLE,Q1_1,Q1_2,Q2_1,Q2_2,Q3_1,Q3_2,WIN};
+    }
+  }
+  alu alu1;
+  
+  always {
+    out = 0;   
+    led = stage.q;
+    alu1.a = 0;
+    alu1.b = 0;
+    alu1.alufn = 0;
+    case(state.q){
+      state.IDLE:
+      stage.d=0;
+      calc.d = 0;
+      if(enable){
+        state.d = state.Q1_1;}
+          
+      state.Q1_1:
+      alu1.a = 8d5;
+      alu1.b = 8d6;
+      case(in1){
+          001: alu1.alufn = 6b000000; //ADD
+          010: alu1.alufn = 6b000001; //SUB
+          100: alu1.alufn = 6b000010; //MUL   
+        }
+      calc.d = calc.q+alu1.alu; 
+      state.d = state.Q1_2;
+        
+      state.Q1_2:
+      alu1.a = calc.q;
+      alu1.b = 8d4;
+      case(in2){
+          001: alu1.alufn = 6b000000; //ADD
+          010: alu1.alufn = 6b000001; //SUB
+          100: alu1.alufn = 6b000010; //MUL   
+        }
+      if(alu1.alu == 7){
+        calc.d=0;
+        stage.d = stage.q+1;
+        state.d = state.Q2_1;}
+      else{
+        calc.d=0;
+        state.d = state.Q1_1;}
+          
+      state.Q2_1:
+      alu1.a = 2;
+      alu1.b = 3;
+      case(in1){
+          001: alu1.alufn = 6b000000; //ADD
+          010: alu1.alufn = 6b000001; //SUB
+          100: alu1.alufn = 6b000010; //MUL   
+        }
+      calc.d = calc.q+alu1.alu; 
+      state.d = state.Q2_2;
+         
+      state.Q2_2:
+      alu1.a = calc.q;
+      alu1.b = 3;
+      case(in2){
+          001: alu1.alufn = 6b000000; //ADD
+          010: alu1.alufn = 6b000001; //SUB
+          100: alu1.alufn = 6b000010; //MUL   
+        }
+      if(alu1.alu == 9){
+        calc.d=0;
+        stage.d = stage.q+1;
+        state.d = state.Q3_1;}
+      else{
+        calc.d=0;
+        state.d = state.Q2_1;}
+        
+      state.Q3_1:
+      alu1.a = 3;
+      alu1.b = 7;
+      case(in1){
+          001: alu1.alufn = 6b000000; //ADD
+          010: alu1.alufn = 6b000001; //SUB
+          100: alu1.alufn = 6b000010; //MUL   
+        }
+      calc.d = calc.q+alu1.alu; 
+      state.d = state.Q3_2;
+        
+      state.Q3_2:
+      alu1.a = calc.q;
+      alu1.b = 5;
+      case(in2){
+          001: alu1.alufn = 6b000000; //ADD
+          010: alu1.alufn = 6b000001; //SUB
+          100: alu1.alufn = 6b000010; //MUL   
+        }
+      if(alu1.alu == 1){
+        calc.d=0;
+        stage.d = stage.q+1;
+        state.d = state.WIN;}
+      else{
+        calc.d=0;
+        state.d = state.Q3_1;}
+             
+      state.WIN:
+      out = 3b1;     
+    }
+  }
+}
