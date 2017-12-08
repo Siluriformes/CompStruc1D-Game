@@ -82,11 +82,17 @@ module mojo_top (
     led[3] = t3.gout;
     led[1] = t3.yout;
     
-    t4.in1 = io_dip[0][7:5];  //change to proper input instead of dip switches
-    t4.in2 = io_dip[0][4:2];
+    t4.in1[2] = io_dip[0][7];
+    t4.in1[1] = io_dip[0][6];
+    t4.in1[0] = io_dip[0][5];  //change to proper input instead of dip switches
+    t4.in2[2] = io_dip[0][4];
+    t4.in2[1] = io_dip[0][3];
+    t4.in2[0] = io_dip[0][2];
     
-    io_led[0][7:5] = t4.led;  //change to proper big LEDs instead of io led
-    
+    io_led[0][7] = t4.led[2];
+    io_led[0][6] = t4.led[1];
+    io_led[0][5] = t4.led[0];  //change to proper big LEDs instead of io led
+      
     timedigit.in = cdtimer.out;
     
     seg_display.values = {6d16, timedigit.out2,timedigit.out1,timedigit.out0};
