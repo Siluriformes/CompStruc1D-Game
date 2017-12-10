@@ -13,8 +13,8 @@
     <src>seven_seg.luc</src>
     <src>time_digit.luc</src>
     <src>adder.luc</src>
-    <src>task1.luc</src>
     <src>task2.luc</src>
+    <src>task1.luc</src>
     <ucf lib="true">io_shield.ucf</ucf>
     <ucf lib="true">mojo.ucf</ucf>
     <component>decoder.luc</component>
